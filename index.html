@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ersatzteil-Preis-Scout</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#0f1d31;
+      --panel2:#132842;
+      --line:#29415f;
+      --text:#eef5ff;
+      --muted:#9eb0c5;
+      --accent:#facc15;
+      --green:#22c55e;
+      --orange:#fb923c;
+      --red:#ef4444;
+      --blue:#38bdf8;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,#06101c 0%,#0a1830 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .app{max-width:1450px;margin:0 auto;padding:24px}
+    .topbar{
+      display:flex;gap:18px;align-items:center;justify-content:space-between;
+      margin-bottom:22px;
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{
+      width:54px;height:54px;border-radius:16px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--accent),#f97316);
+      color:#111827;font-size:29px;font-weight:900;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0;font-size:clamp(1.55rem,3vw,2.3rem)}
+    .subtitle{color:var(--muted);margin-top:4px}
+    .status{
+      display:flex;gap:8px;align-items:center;
+      color:#bbf7d0;background:rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.35);
+      padding:10px 14px;border-radius:999px;font-weight:700;
+    }
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:20px}
+    .card{
+      background:rgba(15,29,49,.94);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .sidebar{padding:18px;align-self:start;position:sticky;top:18px}
+    .section-title{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:14px;
+    }
+    .section-title h2{margin:0;font-size:1.05rem}
+    .small{font-size:.84rem;color:var(--muted)}
+    label{display:block;font-size:.84rem;color:var(--muted);margin-bottom:6px}
+    input,select{
+      width:100%;background:#091626;color:var(--text);
+      border:1px solid var(--line);border-radius:12px;
+      padding:12px 13px;font-size:.95rem;outline:none;
+    }
+    input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+    .field{margin-bottom:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{
+      appearance:none;border:0;border-radius:12px;padding:12px 15px;
+      font-weight:800;cursor:pointer;transition:.2s;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--accent);color:#111827;width:100%}
+    .btn-secondary{background:#193250;color:var(--text);border:1px solid var(--line)}
+    .btn-danger{background:rgba(239,68,68,.12);color:#fecaca;border:1px solid rgba(239,68,68,.35)}
+    .saved-cars{margin-top:18px}
+    .vehicle-chip{
+      padding:12px;border:1px solid var(--line);background:#0a1828;
+      border-radius:14px;margin-bottom:9px;cursor:pointer;
+    }
+    .vehicle-chip.active{border-color:var(--accent);background:rgba(250,204,21,.08)}
+    .vehicle-chip strong{display:block}
+    .vehicle-chip span{font-size:.8rem;color:var(--muted)}
+    .main{display:flex;flex-direction:column;gap:20px}
+    .search-card{padding:20px}
+    .search-layout{display:grid;grid-template-columns:1.1fr 1fr .7fr auto;gap:12px;align-items:end}
+    .search-btn{height:46px;background:var(--blue);color:#062032;padding:0 22px}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .metric{padding:18px}
+    .metric .value{font-size:1.65rem;font-weight:900;margin-top:8px}
+    .metric .hint{color:var(--muted);font-size:.83rem;margin-top:5px}
+    .metric.good .value{color:#86efac}
+    .metric.warn .value{color:#fdba74}
+    .metric.info .value{color:#7dd3fc}
+    .results{padding:18px}
+    .toolbar{
+      display:flex;gap:10px;justify-content:space-between;align-items:center;
+      margin-bottom:14px;flex-wrap:wrap;
+    }
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{
+      border:1px solid var(--line);background:#0a1828;color:var(--muted);
+      border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:700;
+    }
+    .pill.active{background:var(--accent);color:#111827;border-color:var(--accent)}
+    .offer{
+      display:grid;
+      grid-template-columns:56px 1.25fr .9fr .75fr .75fr .9fr auto;
+      gap:14px;align-items:center;
+      padding:16px 12px;border-top:1px solid var(--line);
+    }
+    .offer:first-of-type{border-top:0}
+    .rank{
+      width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+      background:#193250;font-weight:900;
+    }
+    .offer.best{
+      background:linear-gradient(90deg,rgba(34,197,94,.08),transparent);
+      border-radius:14px;
+    }
+    .offer.best .rank{background:var(--green);color:#052e16}
+    .brandline{font-weight:900;font-size:1rem}
+    .subline{color:var(--muted);font-size:.82rem;margin-top:3px}
+    .quality{font-weight:800}
+    .stars{color:var(--accent);letter-spacing:1px;font-size:.92rem}
+    .price{font-size:1.23rem;font-weight:900}
+    .shipping{color:var(--muted);font-size:.8rem}
+    .badge{
+      display:inline-block;padding:5px 8px;border-radius:999px;font-size:.75rem;font-weight:800;
+    }
+    .badge.green{background:rgba(34,197,94,.13);color:#86efac}
+    .badge.orange{background:rgba(251,146,60,.13);color:#fdba74}
+    .badge.red{background:rgba(239,68,68,.13);color:#fca5a5}
+    .score{
+      width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+      border:5px solid var(--green);font-weight:900;
+    }
+    .buy{
+      background:var(--green);color:#052e16;white-space:nowrap;
+    }
+    .empty{padding:36px;text-align:center;color:var(--muted)}
+    .recommendation{padding:20px}
+    .rec-box{
+      display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;
+      background:linear-gradient(135deg,rgba(34,197,94,.14),rgba(56,189,248,.08));
+      border:1px solid rgba(34,197,94,.32);border-radius:16px;padding:18px;
+    }
+    .rec-box h3{margin:0 0 8px}
+    .rec-box p{margin:0;color:#d7e4f2;line-height:1.55}
+    .rec-price{font-size:1.8rem;font-weight:900;color:#86efac;text-align:right}
+    .footer{color:var(--muted);font-size:.78rem;text-align:center;padding:8px 0 2px}
+    @media(max-width:1050px){
+      .grid{grid-template-columns:1fr}
+      .sidebar{position:static}
+      .search-layout{grid-template-columns:1fr 1fr}
+      .metrics{grid-template-columns:1fr 1fr}
+      .offer{grid-template-columns:50px 1.4fr 1fr 1fr}
+      .offer .hide-tablet{display:none}
+    }
+    @media(max-width:650px){
+      .app{padding:14px}
+      .topbar{align-items:flex-start}
+      .status{display:none}
+      .search-layout,.row,.metrics{grid-template-columns:1fr}
+      .offer{grid-template-columns:42px 1fr auto}
+      .offer .hide-mobile{display:none}
+      .rec-box{grid-template-columns:1fr}
+      .rec-price{text-align:left}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🔧</div>
+      <div>
+        <h1>Ersatzteil-Preis-Scout</h1>
+        <div class="subtitle">Preise vergleichen. Qualität sichern. Geld sparen.</div>
+      </div>
+    </div>
+    <div class="status"><span class="dot"></span> Prototyp V1.0 aktiv</div>
+  </header>
+
+  <div class="grid">
+    <aside class="card sidebar">
+      <div class="section-title">
+        <h2>🚗 Fahrzeug</h2>
+        <span class="small">lokal gespeichert</span>
+      </div>
+
+      <div class="field">
+        <label>Marke</label>
+        <select id="make">
+          <option>BMW</option><option>Audi</option><option>Mercedes-Benz</option>
+          <option>Volkswagen</option><option>Ford</option><option>Opel</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Modell</label>
+        <input id="model" value="X6" placeholder="z. B. X6" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Baujahr</label>
+          <input id="year" value="2010" placeholder="2010" />
+        </div>
+        <div class="field">
+          <label>Motor</label>
+          <input id="engine" value="3.0 Diesel" placeholder="z. B. 3.0 Diesel" />
+        </div>
+      </div>
+      <div class="field">
+        <label>FIN / VIN (optional)</label>
+        <input id="vin" value="WBAKU610700Y22581" maxlength="17" />
+      </div>
+      <button class="btn btn-primary" id="saveVehicle">Fahrzeug speichern</button>
+
+      <div class="saved-cars">
+        <div class="section-title">
+          <h2>Gespeicherte Fahrzeuge</h2>
+          <span class="small" id="carCount">1</span>
+        </div>
+        <div id="vehicleList"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card search-card">
+        <div class="section-title">
+          <h2>🔍 Ersatzteil suchen</h2>
+          <span class="small">Demo-Daten – Händleranbindung folgt</span>
+        </div>
+        <div class="search-layout">
+          <div class="field">
+            <label>Bauteil</label>
+            <input id="part" value="Bremsscheiben und Bremsbeläge" />
+          </div>
+          <div class="field">
+            <label>Achse / Variante</label>
+            <select id="axle">
+              <option>Vorderachse</option>
+              <option>Hinterachse</option>
+              <option>Vorder- und Hinterachse</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Sortierung</label>
+            <select id="sort">
+              <option value="score">Beste Empfehlung</option>
+              <option value="price">Günstigster Preis</option>
+              <option value="quality">Beste Qualität</option>
+              <option value="delivery">Schnellste Lieferung</option>
+            </select>
+          </div>
+          <button class="btn search-btn" id="searchBtn">Vergleichen</button>
+        </div>
+      </section>
+
+      <section class="metrics">
+        <div class="card metric good">
+          <div class="small">Beste Ersparnis</div>
+          <div class="value" id="savingValue">312,00 €</div>
+          <div class="hint">gegenüber Referenzpreis</div>
+        </div>
+        <div class="card metric info">
+          <div class="small">Verglichene Angebote</div>
+          <div class="value" id="offerCount">6</div>
+          <div class="hint">inkl. Versandkosten</div>
+        </div>
+        <div class="card metric warn">
+          <div class="small">Günstigster Gesamtpreis</div>
+          <div class="value" id="lowestPrice">389,80 €</div>
+          <div class="hint">für das ausgewählte Paket</div>
+        </div>
+        <div class="card metric">
+          <div class="small">Referenzpreis</div>
+          <div class="value">701,80 €</div>
+          <div class="hint">Original / Werkstattniveau</div>
+        </div>
+      </section>
+
+      <section class="card results">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0">Angebotsvergleich</h2>
+            <div class="small" id="resultSubtitle">BMW X6 · Bremse Vorderachse</div>
+          </div>
+          <div class="filters">
+            <button class="pill active" data-filter="all">Alle</button>
+            <button class="pill" data-filter="premium">Premium</button>
+            <button class="pill" data-filter="fast">Schnell lieferbar</button>
+            <button class="pill" data-filter="cheap">Unter 450 €</button>
+          </div>
+        </div>
+        <div id="offerList"></div>
+      </section>
+
+      <section class="card recommendation">
+        <div class="rec-box">
+          <div>
+            <h3>🏆 Scout-Empfehlung</h3>
+            <p id="recommendationText">
+              ATE bietet aktuell das beste Verhältnis aus Qualität, Lieferzeit und Gesamtpreis.
+              Gegenüber dem Referenzpreis sparst du rund 312 €. Der Qualitätsabstand zu Originalteilen ist gering.
+            </p>
+          </div>
+          <div>
+            <div class="small">Empfohlener Gesamtpreis</div>
+            <div class="rec-price" id="recommendedPrice">389,80 €</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        Hinweis: Diese Version arbeitet mit Demonstrationsdaten. Vor dem Kauf müssen Fahrzeugzuordnung, OE-Nummern und Lieferumfang geprüft werden.
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const referencePrice = 701.80;
+
+const demoOffers = [
+  {
+    dealer:"Motointegrator", brand:"ATE", product:"PowerDisc + Ceramic Beläge",
+    quality:5, price:382.90, shipping:6.90, days:2, score:94,
+    tier:"premium", fit:"Sehr hohe Erstausrüsterqualität", badge:"Beste Wahl"
+  },
+  {
+    dealer:"Daparto Partner", brand:"Brembo", product:"Coated Disc + Prime Beläge",
+    quality:5, price:399.00, shipping:0, days:3, score:91,
+    tier:"premium", fit:"Sehr gute Qualität, sportliche Auslegung", badge:"Top Qualität"
+  },
+  {
+    dealer:"kfzteile24", brand:"Zimmermann", product:"Coat Z Scheiben + Beläge",
+    quality:4, price:417.40, shipping:5.95, days:2, score:88,
+    tier:"premium", fit:"Gute Preis-Leistung", badge:"Preis-Leistung"
+  },
+  {
+    dealer:"AUTODOC", brand:"TRW", product:"Scheiben + COTEC Beläge",
+    quality:4, price:365.50, shipping:14.30, days:5, score:84,
+    tier:"standard", fit:"Solide Erstausrüsterqualität", badge:"Günstig"
+  },
+  {
+    dealer:"ATP Autoteile", brand:"Bosch", product:"Bremsscheiben + Bremsbeläge",
+    quality:4, price:431.00, shipping:0, days:3, score:82,
+    tier:"standard", fit:"Bekannte Markenqualität", badge:"Solide"
+  },
+  {
+    dealer:"BMW Teilehandel", brand:"Original BMW", product:"Original Satz Vorderachse",
+    quality:5, price:659.00, shipping:8.90, days:4, score:78,
+    tier:"premium", fit:"Originalteile, höchste Passsicherheit", badge:"Original"
+  }
+];
+
+let currentFilter = "all";
+let vehicles = JSON.parse(localStorage.getItem("epsVehicles") || "null") || [
+  {make:"BMW",model:"X6",year:"2010",engine:"3.0 Diesel",vin:"WBAKU610700Y22581"}
+];
+
+function euro(value){
+  return value.toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+}
+
+function stars(n){
+  return "★".repeat(n) + "☆".repeat(5-n);
+}
+
+function total(o){ return o.price + o.shipping; }
+
+function sortedOffers(){
+  let list = [...demoOffers];
+  const sort = document.getElementById("sort").value;
+
+  if(currentFilter==="premium") list = list.filter(o=>o.tier==="premium");
+  if(currentFilter==="fast") list = list.filter(o=>o.days<=2);
+  if(currentFilter==="cheap") list = list.filter(o=>total(o)<450);
+
+  if(sort==="price") list.sort((a,b)=>total(a)-total(b));
+  if(sort==="quality") list.sort((a,b)=>b.quality-a.quality || b.score-a.score);
+  if(sort==="delivery") list.sort((a,b)=>a.days-b.days);
+  if(sort==="score") list.sort((a,b)=>b.score-a.score);
+
+  return list;
+}
+
+function renderOffers(){
+  const list = sortedOffers();
+  const container = document.getElementById("offerList");
+  document.getElementById("offerCount").textContent = list.length;
+
+  if(!list.length){
+    container.innerHTML = '<div class="empty">Keine Angebote passen zu diesem Filter.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map((o,i)=>{
+    const t = total(o);
+    const saving = referencePrice - t;
+    const badgeClass = o.score >= 90 ? "green" : o.score >= 82 ? "orange" : "red";
+    return `
+      <div class="offer ${i===0 ? "best":""}">
+        <div class="rank">${i+1}</div>
+        <div>
+          <div class="brandline">${o.brand}</div>
+          <div class="subline">${o.product}</div>
+          <div class="subline">${o.dealer}</div>
+        </div>
+        <div class="hide-mobile">
+          <div class="quality">${o.fit}</div>
+          <div class="stars">${stars(o.quality)}</div>
+        </div>
+        <div class="hide-tablet">
+          <span class="badge ${badgeClass}">${o.badge}</span>
+          <div class="subline">${o.days} Werktage</div>
+        </div>
+        <div class="hide-tablet">
+          <div class="price">${euro(t)}</div>
+          <div class="shipping">${o.shipping ? "inkl. "+euro(o.shipping)+" Versand" : "versandkostenfrei"}</div>
+        </div>
+        <div class="hide-mobile">
+          <div class="score">${o.score}</div>
+          <div class="subline" style="text-align:center">Scout-Score</div>
+        </div>
+        <button class="btn buy" onclick="alert('Demo: Händlerlink wird in einer späteren Version angebunden.')">
+          ${euro(saving)} sparen
+        </button>
+      </div>`;
+  }).join("");
+
+  const best = list[0];
+  const bestTotal = total(best);
+  document.getElementById("lowestPrice").textContent = euro(Math.min(...list.map(total)));
+  document.getElementById("savingValue").textContent = euro(referencePrice-bestTotal);
+  document.getElementById("recommendedPrice").textContent = euro(bestTotal);
+  document.getElementById("recommendationText").textContent =
+    `${best.brand} bei ${best.dealer} ist aktuell die beste Wahl. ` +
+    `Der Gesamtpreis liegt bei ${euro(bestTotal)}. Gegenüber dem Referenzpreis sparst du ${euro(referencePrice-bestTotal)}. ` +
+    `${best.fit}; erwartete Lieferzeit: ${best.days} Werktage.`;
+}
+
+function renderVehicles(){
+  const list = document.getElementById("vehicleList");
+  document.getElementById("carCount").textContent = vehicles.length;
+  list.innerHTML = vehicles.map((v,i)=>`
+    <div class="vehicle-chip ${i===0?"active":""}" onclick="loadVehicle(${i})">
+      <strong>${v.make} ${v.model}</strong>
+      <span>${v.year} · ${v.engine}${v.vin ? " · "+v.vin.slice(-7):""}</span>
+    </div>
+  `).join("");
+}
+
+window.loadVehicle = function(i){
+  const v=vehicles[i];
+  document.getElementById("make").value=v.make;
+  document.getElementById("model").value=v.model;
+  document.getElementById("year").value=v.year;
+  document.getElementById("engine").value=v.engine;
+  document.getElementById("vin").value=v.vin || "";
+  [...document.querySelectorAll(".vehicle-chip")].forEach((el,idx)=>el.classList.toggle("active",idx===i));
+};
+
+document.getElementById("saveVehicle").addEventListener("click",()=>{
+  const v={
+    make:document.getElementById("make").value.trim(),
+    model:document.getElementById("model").value.trim(),
+    year:document.getElementById("year").value.trim(),
+    engine:document.getElementById("engine").value.trim(),
+    vin:document.getElementById("vin").value.trim().toUpperCase()
+  };
+  if(!v.model){ alert("Bitte ein Modell eingeben."); return; }
+  if(v.vin && v.vin.length!==17){
+    alert("Eine FIN/VIN hat normalerweise 17 Zeichen. Du kannst sie auch leer lassen.");
+    return;
+  }
+  const exists=vehicles.findIndex(x=>x.vin && x.vin===v.vin);
+  if(exists>=0) vehicles[exists]=v; else vehicles.unshift(v);
+  localStorage.setItem("epsVehicles",JSON.stringify(vehicles));
+  renderVehicles();
+  alert("Fahrzeug wurde lokal gespeichert.");
+});
+
+document.getElementById("searchBtn").addEventListener("click",()=>{
+  const car = `${document.getElementById("make").value} ${document.getElementById("model").value}`;
+  const part = document.getElementById("part").value || "Ersatzteil";
+  const axle = document.getElementById("axle").value;
+  document.getElementById("resultSubtitle").textContent = `${car} · ${part} · ${axle}`;
+  renderOffers();
+});
+
+document.getElementById("sort").addEventListener("change",renderOffers);
+
+document.querySelectorAll(".pill").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter=btn.dataset.filter;
+    renderOffers();
+  });
+});
+
+renderVehicles();
+renderOffers();
+</script>
+</body>
+</html>
