@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ersatzteil-Preis-Scout</title>
+  <title>Ersatzteil-Preis-Scout V1.1</title>
   <style>
     :root{
       --bg:#07111f;
@@ -91,7 +91,7 @@
     .vehicle-chip span{font-size:.8rem;color:var(--muted)}
     .main{display:flex;flex-direction:column;gap:20px}
     .search-card{padding:20px}
-    .search-layout{display:grid;grid-template-columns:1.1fr 1fr .7fr auto;gap:12px;align-items:end}
+    .search-layout{display:grid;grid-template-columns:.75fr 1.15fr 1fr .7fr auto;gap:12px;align-items:end}
     .search-btn{height:46px;background:var(--blue);color:#062032;padding:0 22px}
     .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
     .metric{padding:18px}
@@ -187,7 +187,7 @@
         <div class="subtitle">Preise vergleichen. Qualität sichern. Geld sparen.</div>
       </div>
     </div>
-    <div class="status"><span class="dot"></span> Prototyp V1.0 aktiv</div>
+    <div class="status"><span class="dot"></span> Version 1.1 aktiv</div>
   </header>
 
   <div class="grid">
@@ -218,6 +218,16 @@
           <input id="engine" value="3.0 Diesel" placeholder="z. B. 3.0 Diesel" />
         </div>
       </div>
+      <div class="row">
+        <div class="field">
+          <label>HSN</label>
+          <input id="hsn" placeholder="z. B. 0005" maxlength="4" />
+        </div>
+        <div class="field">
+          <label>TSN</label>
+          <input id="tsn" placeholder="z. B. ABC" maxlength="8" />
+        </div>
+      </div>
       <div class="field">
         <label>FIN / VIN (optional)</label>
         <input id="vin" value="WBAKU610700Y22581" maxlength="17" />
@@ -241,7 +251,16 @@
         </div>
         <div class="search-layout">
           <div class="field">
-            <label>Bauteil</label>
+            <label>Suchart</label>
+            <select id="searchMode">
+              <option value="part">Bauteil</option>
+              <option value="oe">OE-Nummer</option>
+              <option value="manufacturer">Hersteller-Teilenummer</option>
+              <option value="key">HSN / TSN</option>
+            </select>
+          </div>
+          <div class="field">
+            <label id="partLabel">Suchbegriff</label>
             <input id="part" value="Bremsscheiben und Bremsbeläge" />
           </div>
           <div class="field">
@@ -305,6 +324,30 @@
       </section>
 
       <section class="card recommendation">
+        <div class="section-title">
+          <h2>🧰 Reparatur-Assistent</h2>
+          <span class="small">Kleinteile automatisch ergänzen</span>
+        </div>
+        <div class="rec-box" style="grid-template-columns:1fr 1fr">
+          <div>
+            <label>Reparaturpaket</label>
+            <select id="repairPackage">
+              <option value="brakeFront">Bremsen Vorderachse</option>
+              <option value="brakeRear">Bremsen Hinterachse</option>
+              <option value="service">Öl- und Filterservice</option>
+            </select>
+            <div id="repairItems" style="margin-top:14px"></div>
+          </div>
+          <div>
+            <h3 style="margin-top:0">Einkaufsmodus</h3>
+            <p class="small">Der Scout berücksichtigt nicht nur Einzelpreise, sondern auch Versandkosten und vollständige Reparaturpakete.</p>
+            <div style="font-size:1.8rem;font-weight:900;color:#86efac" id="repairTotal">0,00 €</div>
+            <button class="btn btn-primary" id="applyPackage" style="margin-top:12px">Paket übernehmen</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card recommendation">
         <div class="rec-box">
           <div>
             <h3>🏆 Scout-Empfehlung</h3>
@@ -365,7 +408,7 @@ const demoOffers = [
 
 let currentFilter = "all";
 let vehicles = JSON.parse(localStorage.getItem("epsVehicles") || "null") || [
-  {make:"BMW",model:"X6",year:"2010",engine:"3.0 Diesel",vin:"WBAKU610700Y22581"}
+  {make:"BMW",model:"X6",year:"2010",engine:"3.0 Diesel",hsn:"",tsn:"",vin:"WBAKU610700Y22581"}
 ];
 
 function euro(value){
@@ -455,7 +498,7 @@ function renderVehicles(){
   list.innerHTML = vehicles.map((v,i)=>`
     <div class="vehicle-chip ${i===0?"active":""}" onclick="loadVehicle(${i})">
       <strong>${v.make} ${v.model}</strong>
-      <span>${v.year} · ${v.engine}${v.vin ? " · "+v.vin.slice(-7):""}</span>
+      <span>${v.year} · ${v.engine}${v.hsn || v.tsn ? " · "+(v.hsn||"----")+"/"+(v.tsn||"---") : ""}${v.vin ? " · "+v.vin.slice(-7):""}</span>
     </div>
   `).join("");
 }
@@ -466,7 +509,7 @@ window.loadVehicle = function(i){
   document.getElementById("model").value=v.model;
   document.getElementById("year").value=v.year;
   document.getElementById("engine").value=v.engine;
-  document.getElementById("vin").value=v.vin || "";
+  document.getElementById("hsn").value=v.hsn || "";\n  document.getElementById("tsn").value=v.tsn || "";\n  document.getElementById("vin").value=v.vin || "";
   [...document.querySelectorAll(".vehicle-chip")].forEach((el,idx)=>el.classList.toggle("active",idx===i));
 };
 
@@ -509,6 +552,73 @@ document.querySelectorAll(".pill").forEach(btn=>{
   });
 });
 
+
+const repairPackages = {
+  brakeFront: [
+    ["Bremsscheiben Vorderachse", 210, true],
+    ["Bremsbeläge Vorderachse", 105, true],
+    ["Verschleißsensor", 18, true],
+    ["Befestigungsschrauben", 12, false],
+    ["Zubehörsatz / Federn", 16, false],
+    ["Bremsenreiniger", 7, false]
+  ],
+  brakeRear: [
+    ["Bremsscheiben Hinterachse", 185, true],
+    ["Bremsbeläge Hinterachse", 88, true],
+    ["Verschleißsensor", 18, true],
+    ["Befestigungsschrauben", 12, false],
+    ["Zubehörsatz / Federn", 15, false]
+  ],
+  service: [
+    ["Motoröl", 62, true],
+    ["Ölfilter", 15, true],
+    ["Luftfilter", 24, false],
+    ["Innenraumfilter", 29, false],
+    ["Kraftstofffilter", 38, false],
+    ["Ablassschraube + Dichtung", 6, true]
+  ]
+};
+
+function renderRepairPackage(){
+  const items = repairPackages[document.getElementById("repairPackage").value];
+  document.getElementById("repairItems").innerHTML = items.map((item,i)=>`
+    <label style="display:flex;gap:9px;align-items:flex-start;margin-bottom:9px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#0a1828">
+      <input type="checkbox" class="repairCheck" data-index="${i}" checked style="width:auto;margin-top:3px">
+      <span><strong>${item[0]}</strong><br><span class="small">${item[2] ? "Pflichtteil" : "empfohlen"} · ${euro(item[1])}</span></span>
+    </label>`).join("");
+  updateRepairTotal();
+}
+
+function updateRepairTotal(){
+  const items = repairPackages[document.getElementById("repairPackage").value];
+  let sum = 0;
+  document.querySelectorAll(".repairCheck:checked").forEach(cb => sum += items[Number(cb.dataset.index)][1]);
+  document.getElementById("repairTotal").textContent = euro(sum);
+}
+
+document.getElementById("repairPackage").addEventListener("change", renderRepairPackage);
+document.addEventListener("change", e => {
+  if(e.target.classList.contains("repairCheck")) updateRepairTotal();
+});
+document.getElementById("applyPackage").addEventListener("click", ()=>{
+  const selected = [...document.querySelectorAll(".repairCheck:checked")].length;
+  alert(`${selected} Positionen wurden für den Preisvergleich vorgemerkt.`);
+});
+
+document.getElementById("searchMode").addEventListener("change", e=>{
+  const labels = {
+    part:["Bauteil / Reparatur","z. B. Bremsen vorne"],
+    oe:["OE-Nummer","z. B. 34116855003"],
+    manufacturer:["Hersteller-Teilenummer","z. B. ATE 24.0128-0185.1"],
+    key:["HSN / TSN","z. B. 0005 / ABC"]
+  };
+  const data = labels[e.target.value];
+  document.getElementById("partLabel").textContent = data[0];
+  document.getElementById("part").value = "";
+  document.getElementById("part").placeholder = data[1];
+});
+
+renderRepairPackage();
 renderVehicles();
 renderOffers();
 </script>
