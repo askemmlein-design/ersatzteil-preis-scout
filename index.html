@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ersatzteil-Preis-Scout V1.1</title>
+  <title>Ersatzteil-Preis-Scout V1.2</title>
   <style>
     :root{
       --bg:#07111f;
@@ -184,10 +184,10 @@
       <div class="logo">🔧</div>
       <div>
         <h1>Ersatzteil-Preis-Scout</h1>
-        <div class="subtitle">Preise vergleichen. Qualität sichern. Geld sparen.</div>
+        <div class="subtitle">Günstigste passende Ersatzteile finden – inklusive Versand und Qualitätscheck.</div>
       </div>
     </div>
-    <div class="status"><span class="dot"></span> Version 1.1 aktiv</div>
+    <div class="status"><span class="dot"></span> Version 1.2 aktiv</div>
   </header>
 
   <div class="grid">
@@ -286,9 +286,9 @@
 
       <section class="metrics">
         <div class="card metric good">
-          <div class="small">Beste Ersparnis</div>
+          <div class="small">Maximale Ersparnis</div>
           <div class="value" id="savingValue">312,00 €</div>
-          <div class="hint">gegenüber Referenzpreis</div>
+          <div class="hint">gegenüber Vergleichspreis</div>
         </div>
         <div class="card metric info">
           <div class="small">Verglichene Angebote</div>
@@ -296,18 +296,62 @@
           <div class="hint">inkl. Versandkosten</div>
         </div>
         <div class="card metric warn">
-          <div class="small">Günstigster Gesamtpreis</div>
+          <div class="small">Billigster Endpreis</div>
           <div class="value" id="lowestPrice">389,80 €</div>
           <div class="hint">für das ausgewählte Paket</div>
         </div>
         <div class="card metric">
-          <div class="small">Referenzpreis</div>
+          <div class="small">Vergleichspreis</div>
           <div class="value">701,80 €</div>
           <div class="hint">Original / Werkstattniveau</div>
         </div>
       </section>
 
-      <section class="card results">
+      
+      <section class="card recommendation">
+        <div class="section-title">
+          <h2>💶 Preisfokus</h2>
+          <span class="small">Entscheidend ist der echte Endpreis</span>
+        </div>
+        <div class="rec-box" style="grid-template-columns:repeat(3,1fr)">
+          <div>
+            <div class="small">Billigstes empfehlenswertes Angebot</div>
+            <div class="rec-price" id="bestRecommendedPrice">389,80 €</div>
+            <div class="small" id="bestRecommendedLabel">ATE · Motointegrator</div>
+          </div>
+          <div>
+            <div class="small">Billigstes Angebot insgesamt</div>
+            <div class="rec-price" id="absoluteLowestPrice">379,80 €</div>
+            <div class="small" id="absoluteLowestLabel">TRW · AUTODOC</div>
+          </div>
+          <div>
+            <div class="small">Mehrpreis für bessere Wahl</div>
+            <div class="rec-price" id="smartPremium">10,00 €</div>
+            <div class="small">nur wenn Qualität/Lieferzeit sinnvoll besser sind</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card recommendation">
+        <div class="section-title">
+          <h2>🧮 Einkaufsoptimierung</h2>
+          <span class="small">ein Händler oder mehrere Händler?</span>
+        </div>
+        <div class="rec-box" style="grid-template-columns:1fr 1fr">
+          <div>
+            <h3>Alles bei einem Händler</h3>
+            <div class="rec-price" id="singleDealerTotal">412,70 €</div>
+            <div class="small">bequemer, nur einmal Versand</div>
+          </div>
+          <div>
+            <h3>Günstigste Kombination</h3>
+            <div class="rec-price" id="multiDealerTotal">398,40 €</div>
+            <div class="small">mehrere Händler, Versand bereits eingerechnet</div>
+          </div>
+        </div>
+      </section>
+
+<section class="card results">
         <div class="toolbar">
           <div>
             <h2 style="margin:0">Angebotsvergleich</h2>
@@ -352,8 +396,8 @@
           <div>
             <h3>🏆 Scout-Empfehlung</h3>
             <p id="recommendationText">
-              ATE bietet aktuell das beste Verhältnis aus Qualität, Lieferzeit und Gesamtpreis.
-              Gegenüber dem Referenzpreis sparst du rund 312 €. Der Qualitätsabstand zu Originalteilen ist gering.
+              ATE ist aktuell das günstigste empfehlenswerte Angebot bei vergleichbarer Markenqualität.
+              Gegenüber dem Vergleichspreis sparst du rund 312 €. Der Qualitätsabstand zu Originalteilen ist gering.
             </p>
           </div>
           <div>
@@ -364,7 +408,7 @@
       </section>
 
       <div class="footer">
-        Hinweis: Diese Version arbeitet mit Demonstrationsdaten. Vor dem Kauf müssen Fahrzeugzuordnung, OE-Nummern und Lieferumfang geprüft werden.
+        Hinweis: Demo-Daten. Entscheidend ist später der Endpreis inklusive Versand. Fahrzeugzuordnung, OE-Nummern und Lieferumfang müssen vor dem Kauf geprüft werden.
       </div>
     </main>
   </div>
@@ -374,6 +418,12 @@
 const referencePrice = 701.80;
 
 const demoOffers = [
+  {
+    dealer:"Marketplace Händler", brand:"BudgetLine", product:"Bremssatz Vorderachse",
+    quality:2, price:329.00, shipping:12.90, days:6, score:58,
+    tier:"budget", fit:"Sehr günstiger Preis, Qualität und Herkunft unklar", badge:"Preiswarnung",
+    warning:true
+  },
   {
     dealer:"Motointegrator", brand:"ATE", product:"PowerDisc + Ceramic Beläge",
     quality:5, price:382.90, shipping:6.90, days:2, score:94,
@@ -450,12 +500,12 @@ function renderOffers(){
   container.innerHTML = list.map((o,i)=>{
     const t = total(o);
     const saving = referencePrice - t;
-    const badgeClass = o.score >= 90 ? "green" : o.score >= 82 ? "orange" : "red";
+    const badgeClass = o.warning ? "red" : o.score >= 90 ? "green" : o.score >= 82 ? "orange" : "red";
     return `
       <div class="offer ${i===0 ? "best":""}">
         <div class="rank">${i+1}</div>
         <div>
-          <div class="brandline">${o.brand}</div>
+          <div class="brandline">${o.brand}${o.warning ? ' <span class="badge red">Preiswarnung</span>' : ""}</div>
           <div class="subline">${o.product}</div>
           <div class="subline">${o.dealer}</div>
         </div>
@@ -476,7 +526,7 @@ function renderOffers(){
           <div class="subline" style="text-align:center">Scout-Score</div>
         </div>
         <button class="btn buy" onclick="alert('Demo: Händlerlink wird in einer späteren Version angebunden.')">
-          ${euro(saving)} sparen
+          ${o.warning ? "Nicht empfohlen" : euro(saving)+" sparen"}
         </button>
       </div>`;
   }).join("");
@@ -488,7 +538,7 @@ function renderOffers(){
   document.getElementById("recommendedPrice").textContent = euro(bestTotal);
   document.getElementById("recommendationText").textContent =
     `${best.brand} bei ${best.dealer} ist aktuell die beste Wahl. ` +
-    `Der Gesamtpreis liegt bei ${euro(bestTotal)}. Gegenüber dem Referenzpreis sparst du ${euro(referencePrice-bestTotal)}. ` +
+    `Der Gesamtpreis liegt bei ${euro(bestTotal)}. Gegenüber dem Vergleichspreis sparst du ${euro(referencePrice-bestTotal)}. ` +
     `${best.fit}; erwartete Lieferzeit: ${best.days} Werktage.`;
 }
 
@@ -621,6 +671,22 @@ document.getElementById("searchMode").addEventListener("change", e=>{
 renderRepairPackage();
 renderVehicles();
 renderOffers();
+
+function updatePriceFocus(){
+  const absoluteLowest=[...demoOffers].sort((a,b)=>total(a)-total(b))[0];
+  const recommended=[...demoOffers].filter(o=>!o.warning && o.score>=80).sort((a,b)=>total(a)-total(b))[0] || absoluteLowest;
+  const recommendedTotal=total(recommended);
+  const lowestTotal=total(absoluteLowest);
+  if(document.getElementById("bestRecommendedPrice")){
+    document.getElementById("bestRecommendedPrice").textContent=euro(recommendedTotal);
+    document.getElementById("bestRecommendedLabel").textContent=`${recommended.brand} · ${recommended.dealer}`;
+    document.getElementById("absoluteLowestPrice").textContent=euro(lowestTotal);
+    document.getElementById("absoluteLowestLabel").textContent=`${absoluteLowest.brand} · ${absoluteLowest.dealer}`;
+    document.getElementById("smartPremium").textContent=euro(Math.max(0,recommendedTotal-lowestTotal));
+  }
+}
+updatePriceFocus();
+
 </script>
 </body>
 </html>
